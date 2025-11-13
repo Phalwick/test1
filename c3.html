@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 Crypto Exchange</title>
+    <!-- 1. Import Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Import a web font (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 3. Setup Tailwind Dark Mode & Font -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // This enables dark mode based on the 'dark' class on the <html> tag
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-primary': '#3B82F6', // Example brand color (blue-500)
+                        'brand-secondary': '#1D4ED8', // Example brand color (blue-700)
+                        'gray-dark': '#0F172A', // A very dark gray (slate-900)
+                        'gray-medium': '#1E293B', // A medium dark gray (slate-800)
+                        'gray-light': '#334155', // A lighter dark gray (slate-700)
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- 4. Custom Styles -->
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Simple loading spinner */
+        .spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid #ffffff;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-dark text-white font-sans flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="w-full p-4 border-b border-gray-light">
+        <nav class="container mx-auto flex justify-between items-center max-w-6xl">
+            <!-- Logo -->
+            <div class="flex items-center space-x-2">
+                <svg class="w-8 h-8 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span class="text-2xl font-bold">CryptoSwap</span>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div class="hidden md:flex space-x-6">
+                <a href="#" class="text-gray-300 hover:text-white transition-colors">Swap</a>
+                <a href="#" class="text-gray-300 hover:text-white transition-colors">Pool</a>
+                <a href="#" class="text-gray-300 hover:text-white transition-colors">Vote</a>
+            </div>
+
+            <!-- Connect Wallet Button -->
+            <button id="connect-wallet-btn" class="bg-brand-primary hover:bg-brand-secondary text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
+                Connect Wallet
+            </button>
+            <div id="wallet-info" class="hidden bg-gray-medium py-2 px-4 rounded-lg font-mono">
+                <span id="wallet-address"></span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        
+        <!-- Swap Card -->
+        <div class="w-full max-w-md bg-gray-medium rounded-2xl p-6 shadow-2xl" id="swap-card">
+            
+            <!-- Card Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Swap</h2>
+                <button class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.573-1.066z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </button>
+            </div>
+
+            <!-- "From" Input Block -->
+            <div class="bg-gray-light p-4 rounded-xl mb-3">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-400">From</span>
+                    <span class="text-sm text-gray-400" id="from-balance">Balance: 0.0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <input type="number" id="from-amount" placeholder="0.0" class="text-3xl bg-transparent w-full focus:outline-none" onkeyup="calculateToAmount()">
+                    <button class="flex items-center bg-gray-medium hover:bg-gray-dark px-4 py-2 rounded-lg transition-colors">
+                        <img src="https://placehold.co/24x24/3B82F6/FFFFFF?text=ETH" class="w-6 h-6 rounded-full mr-2" alt="ETH icon">
+                        <span class="font-semibold text-lg">ETH</span>
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Swap Arrow Button -->
+            <div class="flex justify-center my-4">
+                <button id="swap-arrow-btn" class="bg-gray-light p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-light/80 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 17l-4 4m0 0l-4-4m4 4V3m4 6l4 4m0 0l-4 4m4-4H7"></path></svg>
+                </button>
+            </div>
+
+            <!-- "To" Input Block -->
+            <div class="bg-gray-light p-4 rounded-xl mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-400">To</span>
+                    <span class="text-sm text-gray-400" id="to-balance">Balance: 0.0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <input type="number" id="to-amount" placeholder="0.0" class="text-3xl bg-transparent w-full focus:outline-none" readonly>
+                    <button class="flex items-center bg-gray-medium hover:bg-gray-dark px-4 py-2 rounded-lg transition-colors">
+                        <img src="https://placehold.co/24x24/22C55E/FFFFFF?text=USDC" class="w-6 h-6 rounded-full mr-2" alt="USDC icon">
+                        <span class="font-semibold text-lg">USDC</span>
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Swap Details (Mock) -->
+            <div class="space-y-2 text-sm text-gray-400 mb-6">
+                <div class="flex justify-between">
+                    <span>Price</span><span class="text-white" id="price-info">1 ETH = 2,000 USDC</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Slippage Tolerance</span>
+                    <span class="text-white">0.5%</span>
+                </div>
+            </div>
+
+            <!-- Main Action Button -->
+            <button id="main-action-btn" class="w-full bg-brand-primary hover:bg-brand-secondary text-white text-lg font-semibold py-4 rounded-xl transition-colors duration-300 flex items-center justify-center space-x-2">
+                <span id="main-btn-text">Connect Wallet</span>
+                <div id="main-btn-spinner" class="spinner hidden"></div>
+            </button>
+
+        </div>
+    </main>
+    
+    <!-- Simple Message Box (hidden by default) -->
+    <div id="message-box" class="hidden fixed top-5 right-5 bg-green-500 text-white py-3 px-5 rounded-lg shadow-lg">
+        <span id="message-text"></span>
+    </div>
+
+    <!-- 5. JavaScript Logic -->
+    <script>
+        // --- DOM Elements ---
+        const connectWalletBtn = document.getElementById('connect-wallet-btn');
+        const walletInfo = document.getElementById('wallet-info');
+        const walletAddress = document.getElementById('wallet-address');
+        const mainActionBtn = document.getElementById('main-action-btn');
+        const mainBtnText = document.getElementById('main-btn-text');
+        const mainBtnSpinner = document.getElementById('main-btn-spinner');
+        
+        const fromAmountInput = document.getElementById('from-amount');
+        const toAmountInput = document.getElementById('to-amount');
+        const priceInfo = document.getElementById('price-info');
+
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+
+        // --- State ---
+        let isWalletConnected = false;
+        // Mock price for demonstration: 1 ETH = 2000 USDC
+        const mockPrice = 2000; 
+
+        // --- Functions ---
+
+        /**
+         * 1. Connect Wallet (Mock)
+         * In a real app, this would use ethers.js or web3.js to 
+         * request a connection from MetaMask or another wallet.
+         */
+        function connectWallet() {
+            console.log('Connecting wallet...');
+            // Simulate a wallet connection
+            setTimeout(() => {
+                const mockAddress = "0x" + [...Array(4)].map(() => Math.floor(Math.random() * 16).toString(16)).join('') + "..." + [...Array(4)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+                
+                // Update UI
+                connectWalletBtn.classList.add('hidden');
+                walletInfo.classList.remove('hidden');
+                walletAddress.innerText = mockAddress;
+                
+                mainActionBtn.disabled = false;
+                mainBtnText.innerText = 'Enter an amount';
+                
+                isWalletConnected = true;
+                
+                // Update mock balances
+                document.getElementById('from-balance').innerText = 'Balance: 2.5 ETH';
+                document.getElementById('to-balance').innerText = 'Balance: 1500.0 USDC';
+
+                console.log('Wallet connected:', mockAddress);
+                showNotification('Wallet Connected!', 'bg-green-500');
+            }, 500);
+        }
+
+        /**
+         * 2. Calculate Receive Amount
+         * In a real app, you would get this quote from a smart contract.
+         */
+        function calculateToAmount() {
+            if (!isWalletConnected) return;
+
+            const fromAmount = parseFloat(fromAmountInput.value);
+            if (isNaN(fromAmount) || fromAmount <= 0) {
+                toAmountInput.value = '';
+                mainBtnText.innerText = 'Enter an amount';
+                mainActionBtn.disabled = true;
+                return;
+            }
+
+            // Calculate mock "to" amount
+            const toAmount = fromAmount * mockPrice;
+            toAmountInput.value = toAmount.toFixed(2); // Format to 2 decimal places
+
+            // Update button
+            mainBtnText.innerText = 'Swap';
+            mainActionBtn.disabled = false;
+        }
+
+        /**
+         * 3. Perform Swap (Mock)
+         * In a real app, this would:
+         * 1. Check for token approval (if not, request it)
+         * 2. Send the swap transaction to the router smart contract.
+         */
+        function performSwap() {
+            if (!isWalletConnected) {
+                connectWallet();
+                return;
+            }
+
+            const fromAmount = fromAmountInput.value;
+            const toAmount = toAmountInput.value;
+            if (!fromAmount || fromAmount <= 0) {
+                return;
+            }
+
+            console.log(`Attempting to swap ${fromAmount} ETH for ${toAmount} USDC...`);
+
+            // Show loading state
+            mainBtnText.classList.add('hidden');
+            mainBtnSpinner.classList.remove('hidden');
+            mainActionBtn.disabled = true;
+
+            // Simulate transaction delay
+            setTimeout(() => {
+                // Hide loading state
+                mainBtnText.classList.remove('hidden');
+                mainBtnSpinner.classList.add('hidden');
+                mainActionBtn.disabled = false;
+
+                // Reset inputs
+                fromAmountInput.value = '';
+                toAmountInput.value = '';
+                mainBtnText.innerText = 'Enter an amount';
+                mainActionBtn.disabled = true;
+
+                console.log('Swap successful!');
+                showNotification('Transaction Submitted!', 'bg-blue-500');
+                
+                // In a real app, you would wait for the transaction to be mined
+                // and then update balances.
+            }, 2000);
+        }
+
+        /**
+         * 4. Show Notification
+         * A simple utility to replace alert().
+         */
+        function showNotification(message, colorClass) {
+            messageText.innerText = message;
+            messageBox.className = fixed top-5 right-5 text-white py-3 px-5 rounded-lg shadow-lg ${colorClass};
+            messageBox.classList.remove('hidden');
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000);
+        }
+        
+        // --- Event Listeners ---
+        connectWalletBtn.addEventListener('click', connectWallet);
+        mainActionBtn.addEventListener('click', performSwap);
+
+        // Update button text if wallet is not connected
+        fromAmountInput.addEventListener('keyup', () => {
+            if (!isWalletConnected) {
+                mainBtnText.innerText = 'Connect Wallet';
+            } else {
+                calculateToAmount();
+            }
+        });
+        
+        // Note: Swapping "From" and "To" fields is not implemented
+        // but would be a good next step. You would swap the token
+        // info, balances, and re-calculate the price.
+
+    </script>
+</body>
+</html>
